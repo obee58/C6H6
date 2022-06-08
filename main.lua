@@ -1,3 +1,6 @@
+-- requires
+spcanv = require "spritecanvas"
+
 -- global tables
 pObjects = {} --contains most things
 plr = {} --player gameplay data (should usually be inside pObjects)
@@ -15,18 +18,13 @@ function love.load()
     love.graphics.setColor(127,127,127)
 
     -- setup cursor
-    cursorCanvas = love.graphics.newCanvas(32,32)
-    love.graphics.setCanvas(cursorCanvas)
-    love.graphics.clear()
-    love.graphics.setColor(1,1,1)
+    -- arguably i should just use an empty one and draw at the mouse position, but i think this has its own charm
+    spcanv.start(32,32)
     love.graphics.arc("line", "open", 16,16, 8, radUp,0, 8)
     love.graphics.arc("line", "open", 16,16, 8, -radUp,math.pi, 8)
     love.graphics.circle("fill", 16,16, 2)
 
-    love.graphics.setCanvas() --disable canvas
-
-    cursorImg = cursorCanvas:newImageData()
-    crosshair = love.mouse.newCursor(cursorImg, 16,16)
+    crosshair = love.mouse.newCursor(spcanv.finish(), 16,16)
     love.mouse.setCursor(crosshair)
 
     -- GAME STARTS --
