@@ -1,7 +1,10 @@
 -- global tables
-playfieldObjects = {}
-plr = {}
-keys = {}
+pObjects = {} --contains most things
+plr = {} --player gameplay data (should usually be inside pObjects)
+keys = {} --keyboard inputs table
+
+-- constants
+radUp = -math.pi/2
 
 function love.load()
     -- setup window
@@ -11,6 +14,22 @@ function love.load()
     love.graphics.setNewFont(12)
     love.graphics.setColor(127,127,127)
 
+    -- setup cursor
+    cursorCanvas = love.graphics.newCanvas(32,32)
+    love.graphics.setCanvas(cursorCanvas)
+    love.graphics.clear()
+    love.graphics.setColor(1,1,1)
+    love.graphics.arc("line", "open", 16,16, 8, radUp,0, 8)
+    love.graphics.arc("line", "open", 16,16, 8, -radUp,math.pi, 8)
+    love.graphics.circle("fill", 16,16, 2)
+
+    love.graphics.setCanvas() --disable canvas
+
+    cursorImg = cursorCanvas:newImageData()
+    crosshair = love.mouse.newCursor(cursorImg, 16,16)
+    love.mouse.setCursor(crosshair)
+
+    -- GAME STARTS --
     -- setup player
     spawnPlayer(wWidth*0.5, wHeight*0.5, 16, 4, 2.5)
     
@@ -33,7 +52,6 @@ function love.update(dt)
 end
 
 function love.draw()
-    local radUp = -math.pi/2
 
     -- debug text
     love.graphics.setColor(0.5,0.5,0.5)
@@ -67,7 +85,7 @@ end
 
 function spawnPlayer(x, y, size, hitbox, speed)
     -- X, Y, XVel, YVel, HP, SPD, ...?
-    playfieldObjects["player"] = plr
+    pObjects["player"] = plr
     plr["x"] = x
     plr["y"] = y
     plr["size"] = size
