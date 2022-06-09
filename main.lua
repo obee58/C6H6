@@ -52,7 +52,7 @@ function love.update(dt)
     elseif keys.d or keys.right then plr.xVel = plr.speed
     else plr.xVel = 0 end 
 
-    -- aim player "gun" at mouse cursor
+    -- aim player "gun" at mouse cursor TODO
     local mousedistx = (love.mouse.getX() - plr.x)
     local mousedisty = (love.mouse.getY() - plr.y)
     plr.angle = math.atan(mousedisty,mousedistx)
@@ -110,15 +110,15 @@ function love.draw()
 
     -- simple bullets
     for BID, bu in pairs(pBullets) do
+        gfx.setColor(0.3,0.3,0.3) --draw trail underneath
+        gfx.line(bu.x,bu.y, bu.x-(math.cos(bu.angle)*bu.vel/16),bu.y-(math.sin(bu.angle)*bu.vel/16))
         gfx.setColor(bu.color)
         gfx.circle("fill", bu.x,bu.y, bu.size)
-        gfx.setColor(0.3,0.3,0.3)
-        gfx.line(bu.x,bu.y, bu.x-(math.cos(bu.angle)*bu.vel/16),bu.y-(math.sin(bu.angle)*bu.vel/16))
     end
 
     -- player mini UI
     gfx.setColor(0.2,0.8,0.2)
-    local hpEdge = ((radUp-math.pi/6) + (plr.hp/plr.maxhp)*radUp+math.pi/6)
+    local hpEdge = ((radUp-math.pi/6) + (plr.hp/plr.maxhp)*math.pi/3)
     gfx.arc("line", "open", plr.x, plr.y, plr.size*1.5, radUp-math.pi/6, hpEdge, 8)
 end
 
@@ -145,7 +145,7 @@ function spawnPlayer(x, y, size, hitbox, speed)
     plr["angle"] = 0 --rad
     plr["size"] = size
     plr["hitbox"] = hitbox
-    plr["hp"] = 20.0
+    plr["hp"] = 25.0
     plr["maxhp"] = 25.0
     plr["firerate"] = 5.0 --shot/s
     plr["invtime"] = 500 --ms
