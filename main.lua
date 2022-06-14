@@ -52,10 +52,10 @@ function love.update(dt)
     elseif keys.d or keys.right then plr.xVel = plr.speed
     else plr.xVel = 0 end 
 
-    -- aim player "gun" at mouse cursor TODO
+    -- aim player "gun" at mouse cursor
     local mousedistx = (love.mouse.getX() - plr.x)
     local mousedisty = (love.mouse.getY() - plr.y)
-    plr.angle = math.atan(mousedisty,mousedistx)
+    plr.angle = math.atan2(mousedisty,mousedistx)
 
     -- player velocity handling (might change so this applies to all pObjects?)
     local velMagnitude = math.sqrt(math.pow(plr.xVel/plr.speed,2) + math.pow(plr.yVel/plr.speed,2))
