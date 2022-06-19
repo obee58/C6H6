@@ -1,16 +1,25 @@
 -- requires
-spcanv = require "spritecanvas"
+local spcanv = require "spritecanvas"
+local objB = require "objBehaviors"
+local objS = require "objSystems"
 
--- global tables
-pObjects = {} --contains most gameplay things; all of them should have x, y, xVel, and yVel fields
+-- global table stuff
+pObjects = {} --contains most gameplay things; all of them should have x, y fields
 pBullets = {} --contains...bullets (please index instead of using keys)
-plr = {} --player gameplay data (should usually be inside pObjects)
-keys = {} --keyboard inputs table
-sprites = {} --stores any ImageData needed for later use
+nextOID = 1 --counter for working with pObjects
+nextBID = 1 --counter for working with pBullets
+
+--funky debug shit
+H2hit = false
+
+-- non-global local global tables (stuff that stays in this one file's code)
+local plr = {} --player gameplay data tracked seperately (should usually be inside pObjects)
+local keys = {} --keyboard inputs table
+local sprites = {} --stores any ImageData needed for later use
 
 -- constants & shortcuts
-radUp = -math.pi/2 --add to angle calculation to make 0 rad = upward
-gfx = love.graphics --i call this a lot
+local radUp = -math.pi/2 --add to angle calculation to make 0 rad = upward
+local gfx = love.graphics --i call this a lot
 
 function love.load()
     -- setup window
@@ -32,12 +41,12 @@ function love.load()
     love.mouse.setCursor(sprites["cur_crosshair"])
 
     -- GAME STARTS --
-    -- counters for the sake of instantiation
+    -- reset counters just in case
     nextBID = 1 --bullets
     nextOID = 1 --objects
 
     -- setup player
-    spawnPlayer(wWidth*0.5, wHeight*0.5, 16, 4, 2.5)
+    plr = objB.spawnPlayer(wWidth*0.5, wHeight*0.5, 16, 4, 2.5)
     
 end
 
@@ -74,19 +83,17 @@ function love.update(dt)
 
     -- shuut bullet
     if love.mouse.isDown(1) and plr.shotcooldown <= 0 then
-        spawnSimpleBullet(plr, 400, plr.angle, 500)
+        objB.spawnSimpleBullet(plr, 400, plr.angle, 500)
         plr.shotcooldown = 1000/plr.firerate
     end
 
-    -- simple bullet updating
+
+    -- update objects and bullets
     for BID, bu in pairs(pBullets) do
-        if bu.decay <= 0 then despawnBul(BID) end
-        local dx = math.cos(bu.angle) * bu.vel * dt
-        local dy = math.sin(bu.angle) * bu.vel * dt
-        bu.x = bu.x + dx
-        bu.y = bu.y + dy
-        bu.decay = bu.decay - (dt*1000)
+        if bu.type == "simple" then objB.updateSimpleBullet(bu, BID, dt) end
     end
+
+
 end
 
 function love.draw()
@@ -95,7 +102,7 @@ function love.draw()
     gfx.print(plr.x..","..plr.y.." : "..plr.angle, 0,0)
     --gfx.print("BID "..nextBID.." OID "..nextOID, 0,32)
     --if love.mouse.isDown(1) then gfx.print(plr.shotcooldown.." : mouse good", 50, 50) end
-
+    if H2hit then gfx.print("H2 bullet collision has happened", 70,70) end
     -- game UI
     gfx.setColor(plr.color)
     gfx.circle("line", 0, wHeight, 128)
@@ -128,62 +135,4 @@ end
 
 function love.keyreleased(key)
     keys[key] = false
-end
-
--- creates the player('s data)
-function spawnPlayer(x, y, size, hitbox, speed)
-    local OID = nextOID
-    -- avoid ID clashes (try to only use as backup)
-    while pObjects[OID] ~= nil do OID = OID + 1 end
-    nextOID = OID + 1
-    pObjects[OID] = plr
-    plr["key"] = "player"
-    plr["x"] = x
-    plr["y"] = y
-    plr["xVel"] = 0 --px/s
-    plr["yVel"] = 0 --px/s
-    plr["angle"] = 0 --rad
-    plr["size"] = size
-    plr["hitbox"] = hitbox
-    plr["hp"] = 25.0
-    plr["maxhp"] = 25.0
-    plr["firerate"] = 5.0 --shot/s
-    plr["invtime"] = 500 --ms
-    plr["speed"] = speed --px/s
-    plr["color"] = {1,1,1,1}
-    plr["shotcooldown"] = 0 --ms
-end
-
--- creates a simple bullet
--- origin: who shoots it (must have x and y fields, used for hit calc)
--- vel: travel speed (px per second?)
--- angle: travel direction (radians)
--- decay: ms before despawning (optional - bullets despawn automatically when they exit the screen)
--- color: guess (optional - table)
--- size: width (optional - px)
-function spawnSimpleBullet(origin, vel, angle, decay, color, size)
-    local bullet = {}
-    local BID = nextBID
-    -- avoid ID clashes (try to only use as backup)
-    while pBullets[BID] ~= nil do BID = BID + 1 end
-    nextBID = BID + 1
-    pBullets[BID] = bullet
-    bullet["origin"] = origin
-    bullet["x"] = origin.x
-    bullet["y"] = origin.y
-    bullet["vel"] = vel
-    bullet["angle"] = angle
-    bullet["decay"] = decay or 5000
-    bullet["color"] = color or {1,1,1,1}
-    bullet["size"] = size or 4
-end
-
-function despawnObj(OID)
-    table.remove(pObjects, OID)
-    nextOID = nextOID - 1
-end
-
-function despawnBul(BID)
-    table.remove(pBullets, BID)
-    nextBID = nextBID - 1
 end
